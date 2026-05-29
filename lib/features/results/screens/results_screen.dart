@@ -9,143 +9,202 @@ class ResultsScreen extends StatelessWidget {
 
   const ResultsScreen({super.key, required this.result});
 
+  Color get _gradeColor {
+    if (result.scorePercent >= 80) return const Color(0xFF4CAF50);
+    if (result.scorePercent >= 60) return const Color(0xFFFF9800);
+    return const Color(0xFFE53935);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5FF),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _header(context),
-            Expanded(
-              child: ListView(
-                padding: const EdgeInsets.all(20),
-                children: [
-                  _scoreCard(),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Question Review',
-                    style: GoogleFonts.poppins(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: const Color(0xFF2D2D2D),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  ...result.questions.asMap().entries.map(
-                    (e) => _questionReviewCard(e.key, e.value),
-                  ),
-                  const SizedBox(height: 20),
-                  _actionButtons(context),
-                ],
-              ),
+      backgroundColor: const Color(0xFFF0F0FF),
+      body: Column(
+        children: [
+          _header(context),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+              children: [
+                _scoreCard(),
+                const SizedBox(height: 24),
+                _sectionTitle('Question Review'),
+                const SizedBox(height: 12),
+                ...result.questions.asMap().entries.map(
+                  (e) => _questionCard(e.key, e.value),
+                ),
+                const SizedBox(height: 24),
+                _actionButtons(context),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _header(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.only(
+        top: MediaQuery.of(context).padding.top + 12,
+        bottom: 16,
+        left: 16,
+        right: 16,
+      ),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF6C63FF), Color(0xFF3B37C8)],
+          colors: [Color(0xFF7B74FF), Color(0xFF3B37C8)],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
-            onPressed: () => context.go('/home'),
+          GestureDetector(
+            onTap: () => context.go('/home'),
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(
+                Icons.close_rounded,
+                color: Colors.white,
+                size: 18,
+              ),
+            ),
           ),
           Expanded(
             child: Text(
               'Quiz Results',
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                fontSize: 18,
+                fontSize: 17,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
           ),
-          const SizedBox(width: 48),
+          const SizedBox(width: 36),
         ],
       ),
     );
   }
 
+  Widget _sectionTitle(String title) {
+    return Text(
+      title,
+      style: GoogleFonts.poppins(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: const Color(0xFF1a1a2e),
+      ),
+    );
+  }
+
   Widget _scoreCard() {
-    final color = result.scorePercent >= 70
-        ? const Color(0xFF4CAF50)
-        : result.scorePercent >= 50
-        ? const Color(0xFFFF9800)
-        : Colors.red;
+    final color = _gradeColor;
+    final isPass = result.scorePercent >= 60;
 
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFE8E8F5), width: 1),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.2),
-            blurRadius: 20,
+            color: color.withOpacity(0.15),
+            blurRadius: 24,
             offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         children: [
-          Text(
-            result.grade,
-            style: GoogleFonts.poppins(
-              fontSize: 64,
-              fontWeight: FontWeight.bold,
-              color: color,
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              shape: BoxShape.circle,
+              border: Border.all(color: color.withOpacity(0.3), width: 2),
+            ),
+            child: Center(
+              child: Text(
+                result.grade,
+                style: GoogleFonts.poppins(
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
             ),
           ),
+          const SizedBox(height: 14),
           Text(
             '${result.scorePercent.toStringAsFixed(0)}%',
             style: GoogleFonts.poppins(
-              fontSize: 24,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF1a1a2e),
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            '${result.correctCount} / ${result.totalQuestions} correct',
-            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+          const SizedBox(height: 4),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              isPass ? '🎉 Great job!' : '📚 Keep studying!',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
           ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _stat(
-                'Correct',
-                result.correctCount.toString(),
-                const Color(0xFF4CAF50),
-              ),
-              _stat(
-                'Wrong',
-                (result.totalQuestions - result.correctCount).toString(),
-                Colors.red,
-              ),
-              _stat(
-                'Total',
-                result.totalQuestions.toString(),
-                const Color(0xFF6C63FF),
-              ),
-            ],
+          const SizedBox(height: 20),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8F8FF),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _stat(
+                  'Correct',
+                  result.correctCount.toString(),
+                  const Color(0xFF4CAF50),
+                ),
+                _statDivider(),
+                _stat(
+                  'Wrong',
+                  (result.totalQuestions - result.correctCount).toString(),
+                  const Color(0xFFE53935),
+                ),
+                _statDivider(),
+                _stat(
+                  'Total',
+                  result.totalQuestions.toString(),
+                  const Color(0xFF6C63FF),
+                ),
+              ],
+            ),
           ),
         ],
       ),
     );
+  }
+
+  Widget _statDivider() {
+    return Container(width: 1, height: 36, color: const Color(0xFFE8E8F5));
   }
 
   Widget _stat(String label, String value, Color color) {
@@ -154,39 +213,48 @@ class ResultsScreen extends StatelessWidget {
         Text(
           value,
           style: GoogleFonts.poppins(
-            fontSize: 24,
+            fontSize: 22,
             fontWeight: FontWeight.bold,
             color: color,
           ),
         ),
         Text(
           label,
-          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[600]),
+          style: GoogleFonts.poppins(fontSize: 11, color: Colors.grey[500]),
         ),
       ],
     );
   }
 
-  Widget _questionReviewCard(int index, Question question) {
+  Widget _questionCard(int index, Question question) {
     final isCorrect = question.isCorrect;
     final isMcq = question.type == QuestionType.mcq;
-    final color = isCorrect ? const Color(0xFF4CAF50) : Colors.red;
+    final color = isCorrect ? const Color(0xFF4CAF50) : const Color(0xFFE53935);
+    final bgColor = isCorrect
+        ? const Color(0xFFF0FBF4)
+        : const Color(0xFFFFF5F5);
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withOpacity(0.25), width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.08),
+              color: bgColor,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(16),
               ),
@@ -194,32 +262,33 @@ class ResultsScreen extends StatelessWidget {
             child: Row(
               children: [
                 Icon(
-                  isCorrect ? Icons.check_circle : Icons.cancel,
+                  isCorrect ? Icons.check_circle_rounded : Icons.cancel_rounded,
                   color: color,
-                  size: 20,
+                  size: 18,
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Text(
                   'Q${index + 1}',
                   style: GoogleFonts.poppins(
                     fontWeight: FontWeight.bold,
                     color: color,
+                    fontSize: 13,
                   ),
                 ),
                 const Spacer(),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 2,
+                    horizontal: 10,
+                    vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.15),
-                    borderRadius: BorderRadius.circular(8),
+                    color: color.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     isCorrect ? 'Correct ✓' : 'Wrong ✗',
                     style: GoogleFonts.poppins(
-                      fontSize: 11,
+                      fontSize: 10,
                       color: color,
                       fontWeight: FontWeight.bold,
                     ),
@@ -229,90 +298,58 @@ class ResultsScreen extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(14),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   question.question,
                   style: GoogleFonts.poppins(
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF2D2D2D),
+                    color: const Color(0xFF1a1a2e),
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 10),
                 if (isMcq) ...[
-                  _answerRow(
+                  _answerChip(
                     'Your Answer',
                     question.userAnswer ?? 'Not answered',
-                    isCorrect ? const Color(0xFF4CAF50) : Colors.red,
+                    isCorrect
+                        ? const Color(0xFF4CAF50)
+                        : const Color(0xFFE53935),
+                    isCorrect
+                        ? const Color(0xFFF0FBF4)
+                        : const Color(0xFFFFF5F5),
                   ),
                   if (!isCorrect) ...[
                     const SizedBox(height: 6),
-                    _answerRow(
+                    _answerChip(
                       'Correct Answer',
                       question.correctAnswer,
                       const Color(0xFF4CAF50),
+                      const Color(0xFFF0FBF4),
                     ),
                   ],
                 ] else ...[
-                  _sectionLabel('Your Answer'),
-                  Text(
+                  _textAnswerBlock(
+                    'Your Answer',
                     question.userAnswer ?? 'Not answered',
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      color: Colors.grey[700],
-                    ),
+                    isCorrect
+                        ? const Color(0xFF4CAF50)
+                        : const Color(0xFFE53935),
+                    bgColor,
                   ),
-                  const SizedBox(height: 10),
-                  _sectionLabel('Model Answer'),
-                  Text(
+                  const SizedBox(height: 8),
+                  _textAnswerBlock(
+                    'Model Answer',
                     question.correctAnswer,
-                    style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      color: const Color(0xFF2D2D2D),
-                    ),
+                    const Color(0xFF6C63FF),
+                    const Color(0xFFF5F4FF),
                   ),
                 ],
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF6C63FF).withOpacity(0.06),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('💡', style: TextStyle(fontSize: 14)),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Explanation',
-                              style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: const Color(0xFF6C63FF),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              question.explanation,
-                              style: GoogleFonts.poppins(
-                                fontSize: 13,
-                                color: Colors.grey[700],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                const SizedBox(height: 10),
+                _explanationBox(question.explanation),
               ],
             ),
           ),
@@ -321,42 +358,133 @@ class ResultsScreen extends StatelessWidget {
     );
   }
 
-  Widget _answerRow(String label, String value, Color color) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          '$label: ',
-          style: GoogleFonts.poppins(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey[700],
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
+  Widget _answerChip(
+    String label,
+    String value,
+    Color textColor,
+    Color bgColor,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '$label: ',
             style: GoogleFonts.poppins(
-              fontSize: 13,
-              color: color,
-              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[600],
             ),
           ),
-        ),
-      ],
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                color: textColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _sectionLabel(String label) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Text(
-        label,
-        style: GoogleFonts.poppins(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.grey[500],
-        ),
+  Widget _textAnswerBlock(
+    String label,
+    String value,
+    Color labelColor,
+    Color bgColor,
+  ) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label.toUpperCase(),
+            style: GoogleFonts.poppins(
+              fontSize: 9,
+              fontWeight: FontWeight.bold,
+              color: labelColor,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: const Color(0xFF3a3a5e),
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _explanationBox(String explanation) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F4FF),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFDDDBFF), width: 1),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEEEDFE),
+              borderRadius: BorderRadius.circular(7),
+            ),
+            child: const Icon(
+              Icons.lightbulb_outline_rounded,
+              size: 13,
+              color: Color(0xFF6C63FF),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Explanation',
+                  style: GoogleFonts.poppins(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF6C63FF),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  explanation,
+                  style: GoogleFonts.poppins(
+                    fontSize: 12,
+                    color: const Color(0xFF534AB7),
+                    height: 1.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -369,7 +497,11 @@ class ResultsScreen extends StatelessWidget {
           height: 52,
           child: ElevatedButton.icon(
             onPressed: () => context.go('/upload'),
-            icon: const Icon(Icons.upload_file, color: Colors.white),
+            icon: const Icon(
+              Icons.upload_file_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
             label: Text(
               'Try Another PDF',
               style: GoogleFonts.poppins(
@@ -379,19 +511,24 @@ class ResultsScreen extends StatelessWidget {
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6C63FF),
+              elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         SizedBox(
           width: double.infinity,
           height: 52,
           child: OutlinedButton.icon(
             onPressed: () => context.go('/home'),
-            icon: const Icon(Icons.home_outlined, color: Color(0xFF6C63FF)),
+            icon: const Icon(
+              Icons.home_outlined,
+              color: Color(0xFF6C63FF),
+              size: 18,
+            ),
             label: Text(
               'Go Home',
               style: GoogleFonts.poppins(
@@ -400,7 +537,7 @@ class ResultsScreen extends StatelessWidget {
               ),
             ),
             style: OutlinedButton.styleFrom(
-              side: const BorderSide(color: Color(0xFF6C63FF)),
+              side: const BorderSide(color: Color(0xFF6C63FF), width: 1.5),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
               ),

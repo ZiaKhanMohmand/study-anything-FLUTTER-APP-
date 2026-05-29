@@ -21,13 +21,19 @@ class LoginScreen extends ConsumerWidget {
           final isVerification =
               message.contains('Verification email sent') ||
               message.contains('Email not verified');
-
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(message),
+              content: Text(
+                message,
+                style: GoogleFonts.poppins(fontSize: 13, color: Colors.white),
+              ),
               backgroundColor: isVerification
                   ? const Color(0xFF6C63FF)
                   : Colors.red,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               duration: Duration(seconds: isVerification ? 6 : 3),
             ),
           );
@@ -39,7 +45,7 @@ class LoginScreen extends ConsumerWidget {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF6C63FF), Color(0xFF3B37C8)],
+            colors: [Color(0xFF7B74FF), Color(0xFF3B37C8)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
@@ -47,34 +53,21 @@ class LoginScreen extends ConsumerWidget {
         child: SafeArea(
           child: Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(32),
+              padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.menu_book_rounded,
-                    size: 80,
-                    color: Colors.white,
-                  ),
+                  _logo(),
+                  const SizedBox(height: 48),
+                  _card(context, ref, authState),
                   const SizedBox(height: 24),
                   Text(
-                    'Study Anything',
+                    'Your AI-powered study companion',
                     style: GoogleFonts.poppins(
-                      fontSize: 32,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      fontSize: 12,
+                      color: Colors.white54,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Upload. Learn. Master.',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      color: Colors.white70,
-                    ),
-                  ),
-                  const SizedBox(height: 60),
-                  _buildCard(context, ref, authState),
                 ],
               ),
             ),
@@ -84,47 +77,107 @@ class LoginScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildCard(BuildContext context, WidgetRef ref, AsyncValue authState) {
+  Widget _logo() {
+    return Column(
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: Colors.white.withOpacity(0.15),
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.3),
+              width: 1.5,
+            ),
+          ),
+          child: const Icon(
+            Icons.menu_book_rounded,
+            size: 40,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          'Study Anything',
+          style: GoogleFonts.poppins(
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Upload. Learn. Master.',
+          style: GoogleFonts.poppins(fontSize: 14, color: Colors.white60),
+        ),
+      ],
+    );
+  }
+
+  Widget _card(BuildContext context, WidgetRef ref, AsyncValue authState) {
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.15),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
+            color: const Color(0xFF3B37C8).withOpacity(0.25),
+            blurRadius: 40,
+            offset: const Offset(0, 16),
           ),
         ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Welcome',
+            'Welcome back 👋',
             style: GoogleFonts.poppins(
-              fontSize: 24,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF2D2D2D),
+              color: const Color(0xFF1a1a2e),
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
           Text(
-            'Sign in to start learning',
-            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+            'Sign in to continue learning',
+            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[500]),
           ),
-          const SizedBox(height: 32),
-          authState.isLoading
-              ? const CircularProgressIndicator(color: Color(0xFF6C63FF))
-              : Column(
-                  children: [
-                    _googleButton(ref),
-                    const SizedBox(height: 16),
-                    _emailButton(context, ref),
-                  ],
-                ),
+          const SizedBox(height: 28),
+          if (authState.isLoading)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: CircularProgressIndicator(color: Color(0xFF6C63FF)),
+              ),
+            )
+          else ...[
+            _googleButton(ref),
+            const SizedBox(height: 12),
+            _divider(),
+            const SizedBox(height: 12),
+            _emailButton(context, ref),
+          ],
         ],
       ),
+    );
+  }
+
+  Widget _divider() {
+    return Row(
+      children: [
+        Expanded(child: Divider(color: Colors.grey[200])),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'or',
+            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[400]),
+          ),
+        ),
+        Expanded(child: Divider(color: Colors.grey[200])),
+      ],
     );
   }
 
@@ -132,21 +185,44 @@ class LoginScreen extends ConsumerWidget {
     return SizedBox(
       width: double.infinity,
       height: 52,
-      child: OutlinedButton.icon(
+      child: OutlinedButton(
         onPressed: () => ref.read(authProvider.notifier).signInWithGoogle(),
-        icon: const Icon(Icons.g_mobiledata, size: 28, color: Colors.red),
-        label: Text(
-          'Continue with Google',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            color: Colors.black87,
-          ),
-        ),
         style: OutlinedButton.styleFrom(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
           ),
-          side: BorderSide(color: Colors.grey[300]!),
+          side: BorderSide(color: Colors.grey[200]!, width: 1.5),
+          backgroundColor: Colors.grey[50],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 20,
+              height: 20,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const SweepGradient(
+                  colors: [
+                    Color(0xFF4285F4),
+                    Color(0xFFEA4335),
+                    Color(0xFFFBBC04),
+                    Color(0xFF34A853),
+                    Color(0xFF4285F4),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Text(
+              'Continue with Google',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF1a1a2e),
+                fontSize: 14,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -156,21 +232,30 @@ class LoginScreen extends ConsumerWidget {
     return SizedBox(
       width: double.infinity,
       height: 52,
-      child: ElevatedButton.icon(
+      child: ElevatedButton(
         onPressed: () => _showEmailDialog(context, ref),
-        icon: const Icon(Icons.email_outlined, color: Colors.white),
-        label: Text(
-          'Continue with Email',
-          style: GoogleFonts.poppins(
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF6C63FF),
+          foregroundColor: Colors.white,
+          elevation: 0,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
           ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.email_outlined, size: 18, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(
+              'Continue with Email',
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+                fontSize: 14,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -186,11 +271,16 @@ class LoginScreen extends ConsumerWidget {
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
           ),
+          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+          contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
           title: Text(
             isLogin ? 'Sign In' : 'Create Account',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
           ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
@@ -199,9 +289,27 @@ class LoginScreen extends ConsumerWidget {
                 controller: emailCtrl,
                 decoration: InputDecoration(
                   labelText: 'Email',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  prefixIcon: const Icon(
+                    Icons.email_outlined,
+                    color: Color(0xFF6C63FF),
                   ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF6C63FF),
+                      width: 2,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
@@ -210,19 +318,41 @@ class LoginScreen extends ConsumerWidget {
                 controller: passCtrl,
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+                  prefixIcon: const Icon(
+                    Icons.lock_outline,
+                    color: Color(0xFF6C63FF),
                   ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: Colors.grey[300]!),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF6C63FF),
+                      width: 2,
+                    ),
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey[50],
                 ),
                 obscureText: true,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               TextButton(
                 onPressed: () => setState(() => isLogin = !isLogin),
                 child: Text(
                   isLogin
                       ? "Don't have an account? Sign Up"
                       : 'Already have an account? Sign In',
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFF6C63FF),
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ],
@@ -230,11 +360,18 @@ class LoginScreen extends ConsumerWidget {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancel'),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(color: Colors.grey[600]),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF6C63FF),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
               ),
               onPressed: () {
                 Navigator.pop(ctx);
@@ -256,7 +393,10 @@ class LoginScreen extends ConsumerWidget {
               },
               child: Text(
                 isLogin ? 'Sign In' : 'Sign Up',
-                style: const TextStyle(color: Colors.white),
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ],

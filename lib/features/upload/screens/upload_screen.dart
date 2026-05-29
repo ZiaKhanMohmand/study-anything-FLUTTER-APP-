@@ -18,31 +18,40 @@ class UploadScreen extends ConsumerWidget {
     final state = ref.watch(_uploadStateProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5FF),
+      backgroundColor: const Color(0xFFF0F0FF),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: Color(0xFF6C63FF)),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go('/home');
-            }
-          },
+        leading: Padding(
+          padding: const EdgeInsets.all(8),
+          child: GestureDetector(
+            onTap: () => context.pop(),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: const Color(0xFFE8E8F5)),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new_rounded,
+                color: Color(0xFF6C63FF),
+                size: 16,
+              ),
+            ),
+          ),
         ),
         title: Text(
           'Upload PDF',
           style: GoogleFonts.poppins(
             fontWeight: FontWeight.bold,
-            color: const Color(0xFF2D2D2D),
+            fontSize: 18,
+            color: const Color(0xFF1a1a2e),
           ),
         ),
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -51,40 +60,23 @@ class UploadScreen extends ConsumerWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF2D2D2D),
+                  color: const Color(0xFF1a1a2e),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               Text(
                 'Upload a PDF chapter or document.\nOur AI will analyze it and generate questions.',
                 style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.grey[600],
+                  fontSize: 13,
+                  color: Colors.grey[500],
+                  height: 1.5,
                 ),
               ),
-              const SizedBox(height: 40),
-              _uploadBox(context, ref, state),
+              const SizedBox(height: 28),
+              _dropZone(context, ref, state),
               if (state.error != null) ...[
-                const SizedBox(height: 16),
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.red[50],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error_outline, color: Colors.red),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          state.error!,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                const SizedBox(height: 14),
+                _errorBanner(state.error!),
               ],
               const Spacer(),
               _tipsCard(),
@@ -95,75 +87,164 @@ class UploadScreen extends ConsumerWidget {
     );
   }
 
-  Widget _uploadBox(
+  Widget _dropZone(
     BuildContext context,
     WidgetRef ref,
     ({bool loading, String? error, String? fileName}) state,
   ) {
+    final hasFile = state.fileName != null;
     return GestureDetector(
       onTap: state.loading ? null : () => _pickPdf(context, ref),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         width: double.infinity,
-        height: 220,
+        height: 210,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: hasFile ? const Color(0xFFEEEDFE) : Colors.white,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: const Color(0xFF6C63FF).withOpacity(0.4),
-            width: 2,
+            color: hasFile
+                ? const Color(0xFF6C63FF)
+                : const Color(0xFF6C63FF).withOpacity(0.3),
+            width: hasFile ? 2 : 1.5,
             style: BorderStyle.solid,
           ),
           boxShadow: [
             BoxShadow(
               color: const Color(0xFF6C63FF).withOpacity(0.08),
-              blurRadius: 20,
+              blurRadius: 24,
+              offset: const Offset(0, 8),
             ),
           ],
         ),
         child: state.loading
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const CircularProgressIndicator(color: Color(0xFF6C63FF)),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Extracting PDF text...',
-                    style: GoogleFonts.poppins(color: Colors.grey[600]),
-                  ),
-                ],
-              )
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    state.fileName != null
-                        ? Icons.picture_as_pdf
-                        : Icons.cloud_upload_outlined,
-                    size: 60,
-                    color: const Color(0xFF6C63FF),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    state.fileName ?? 'Tap to select PDF',
-                    style: GoogleFonts.poppins(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: const Color(0xFF2D2D2D),
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    state.fileName != null
-                        ? 'Tap to change file'
-                        : 'PDF files only',
-                    style: GoogleFonts.poppins(
-                      fontSize: 12,
-                      color: Colors.grey[500],
-                    ),
-                  ),
-                ],
-              ),
+            ? _loadingState()
+            : hasFile
+            ? _fileSelectedState(state.fileName!)
+            : _emptyState(),
+      ),
+    );
+  }
+
+  Widget _emptyState() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 70,
+          height: 70,
+          decoration: BoxDecoration(
+            color: const Color(0xFFEEEDFE),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Icon(
+            Icons.cloud_upload_outlined,
+            size: 36,
+            color: Color(0xFF6C63FF),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Text(
+          'Tap to select PDF',
+          style: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: const Color(0xFF1a1a2e),
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'PDF files only',
+          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[400]),
+        ),
+      ],
+    );
+  }
+
+  Widget _fileSelectedState(String fileName) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: 70,
+          height: 70,
+          decoration: BoxDecoration(
+            color: const Color(0xFF6C63FF).withOpacity(0.15),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: const Icon(
+            Icons.picture_as_pdf_rounded,
+            size: 36,
+            color: Color(0xFF6C63FF),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            fileName,
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF1a1a2e),
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          'Tap to change file',
+          style: GoogleFonts.poppins(
+            fontSize: 11,
+            color: const Color(0xFF6C63FF),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _loadingState() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const SizedBox(
+          width: 40,
+          height: 40,
+          child: CircularProgressIndicator(
+            color: Color(0xFF6C63FF),
+            strokeWidth: 3,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Extracting PDF text...',
+          style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+        ),
+      ],
+    );
+  }
+
+  Widget _errorBanner(String error) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.red[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.red[200]!, width: 1),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline_rounded, color: Colors.red[400], size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              error,
+              style: GoogleFonts.poppins(fontSize: 12, color: Colors.red[700]),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -172,20 +253,27 @@ class UploadScreen extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF6C63FF).withOpacity(0.08),
+        color: const Color(0xFFEEEDFE),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            '💡 Tips for best results',
-            style: GoogleFonts.poppins(
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF6C63FF),
-            ),
+          Row(
+            children: [
+              const Text('💡', style: TextStyle(fontSize: 14)),
+              const SizedBox(width: 6),
+              Text(
+                'Tips for best results',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: const Color(0xFF534AB7),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           _tip('Upload one chapter at a time'),
           _tip('Text-based PDFs work best (not scanned images)'),
           _tip('Max ~30 pages recommended'),
@@ -196,14 +284,27 @@ class UploadScreen extends ConsumerWidget {
 
   Widget _tip(String text) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 2),
+      padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         children: [
-          const Icon(Icons.check_circle, size: 14, color: Color(0xFF6C63FF)),
-          const SizedBox(width: 6),
-          Text(
-            text,
-            style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey[700]),
+          Container(
+            width: 16,
+            height: 16,
+            decoration: BoxDecoration(
+              color: const Color(0xFF6C63FF).withOpacity(0.15),
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: const Icon(Icons.check, size: 10, color: Color(0xFF6C63FF)),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                color: const Color(0xFF534AB7),
+              ),
+            ),
           ),
         ],
       ),
