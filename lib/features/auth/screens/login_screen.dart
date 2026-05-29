@@ -20,7 +20,8 @@ class LoginScreen extends ConsumerWidget {
           final message = e.toString().replaceAll('Exception: ', '');
           final isVerification =
               message.contains('Verification email sent') ||
-              message.contains('Email not verified');
+              message.contains('Email not verified') ||
+              message.contains('Password reset link sent');
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -200,9 +201,9 @@ class LoginScreen extends ConsumerWidget {
             Container(
               width: 20,
               height: 20,
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: const SweepGradient(
+                gradient: SweepGradient(
                   colors: [
                     Color(0xFF4285F4),
                     Color(0xFFEA4335),
@@ -257,6 +258,91 @@ class LoginScreen extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showForgotPasswordDialog(BuildContext context, WidgetRef ref) {
+    final emailCtrl = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
+        contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+        title: Text(
+          'Reset Password',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.bold, fontSize: 20),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Enter your email and we\'ll send a reset link.',
+              style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[500]),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: emailCtrl,
+              decoration: InputDecoration(
+                labelText: 'Email',
+                prefixIcon: const Icon(
+                  Icons.email_outlined,
+                  color: Color(0xFF6C63FF),
+                ),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: BorderSide(color: Colors.grey[300]!),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(
+                    color: Color(0xFF6C63FF),
+                    width: 2,
+                  ),
+                ),
+                filled: true,
+                fillColor: Colors.grey[50],
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(color: Colors.grey[600]),
+            ),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF6C63FF),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref
+                  .read(authProvider.notifier)
+                  .resetPassword(emailCtrl.text.trim());
+            },
+            child: Text(
+              'Send Link',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -342,7 +428,24 @@ class LoginScreen extends ConsumerWidget {
                 ),
                 obscureText: true,
               ),
-              const SizedBox(height: 4),
+              // Forgot password — only show on login mode
+              if (isLogin)
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _showForgotPasswordDialog(context, ref);
+                    },
+                    child: Text(
+                      'Forgot Password?',
+                      style: GoogleFonts.poppins(
+                        color: const Color(0xFF6C63FF),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ),
               TextButton(
                 onPressed: () => setState(() => isLogin = !isLogin),
                 child: Text(

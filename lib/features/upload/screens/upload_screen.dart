@@ -26,7 +26,13 @@ class UploadScreen extends ConsumerWidget {
         leading: Padding(
           padding: const EdgeInsets.all(8),
           child: GestureDetector(
-            onTap: () => context.pop(),
+            onTap: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go('/home');
+              }
+            },
             child: Container(
               decoration: BoxDecoration(
                 color: Colors.white,

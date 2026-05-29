@@ -78,4 +78,16 @@ class AuthNotifier extends AsyncNotifier<User?> {
     await GoogleSignIn.instance.signOut();
     state = const AsyncData(null);
   }
+
+  Future<void> resetPassword(String email) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      state = AsyncValue.error(
+        Exception('Password reset link sent to $email'),
+        StackTrace.current,
+      );
+    } catch (e) {
+      state = AsyncValue.error(Exception(e.toString()), StackTrace.current);
+    }
+  }
 }
