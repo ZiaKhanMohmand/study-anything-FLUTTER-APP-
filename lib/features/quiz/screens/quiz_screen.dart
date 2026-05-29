@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:study_anything/core/models/question_model.dart';
 import 'package:study_anything/core/models/quiz_result_model.dart';
 import 'package:study_anything/core/services/gemini_service.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 final _currentIndexProvider = StateProvider<int>((ref) => 0);
 final _answersProvider = StateProvider<Map<int, String>>((ref) => {});
@@ -23,16 +24,30 @@ class QuizScreen extends ConsumerStatefulWidget {
 class _QuizScreenState extends ConsumerState<QuizScreen> {
   late TextEditingController _textController;
   int _lastIndex = 0;
+  InterstitialAd? _interstitialAd;
 
   @override
   void initState() {
     super.initState();
     _textController = TextEditingController();
+    _loadInterstitialAd();
+  }
+
+  void _loadInterstitialAd() {
+    InterstitialAd.load(
+      adUnitId: 'ca-app-pub-3940256099942544/1033173712', // TEST ID
+      request: const AdRequest(),
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) => _interstitialAd = ad,
+        onAdFailedToLoad: (error) => _interstitialAd = null,
+      ),
+    );
   }
 
   @override
   void dispose() {
     _textController.dispose();
+    _interstitialAd?.dispose();
     super.dispose();
   }
 
@@ -413,7 +428,23 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     ref.read(_answersProvider.notifier).state = {};
 
     if (mounted) {
-      context.go('/results', extra: {'result': result});
+      if (_interstitialAd != null) {
+        _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
+          onAdDismissedFullScreenContent: (ad) {
+            ad.dispose();
+            _interstitialAd = null;
+            if (mounted) context.go('/results', extra: {'result': result});
+          },
+          onAdFailedToShowFullScreenContent: (ad, error) {
+            ad.dispose();
+            _interstitialAd = null;
+            if (mounted) context.go('/results', extra: {'result': result});
+          },
+        );
+        _interstitialAd!.show();
+      } else {
+        context.go('/results', extra: {'result': result}); // fallback
+      }
     }
   }
 }

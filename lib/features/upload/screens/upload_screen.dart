@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:study_anything/widgets/banner_ad_widget.dart';
 import '../../../core/services/pdf_service.dart';
 
 final _uploadStateProvider =
@@ -83,6 +84,10 @@ class UploadScreen extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+      bottomNavigationBar: const Padding(
+        padding: EdgeInsets.only(bottom: 8),
+        child: BannerAdWidget(),
       ),
     );
   }

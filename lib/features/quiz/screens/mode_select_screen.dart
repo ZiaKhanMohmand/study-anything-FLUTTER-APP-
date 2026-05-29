@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:study_anything/widgets/banner_ad_widget.dart';
 import '../../../core/models/question_model.dart';
 import '../../../core/services/gemini_service.dart';
 
@@ -192,6 +193,10 @@ class _ModeSelectScreenState extends ConsumerState<ModeSelectScreen> {
           ),
         ),
       ),
+      bottomNavigationBar: const Padding(
+        padding: EdgeInsets.only(bottom: 8),
+        child: BannerAdWidget(),
+      ),
     );
   }
 
@@ -272,7 +277,7 @@ class _ModeSelectScreenState extends ConsumerState<ModeSelectScreen> {
     return Expanded(
       child: ListView.separated(
         itemCount: modes.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 12),
+        separatorBuilder: (_, _) => const SizedBox(height: 12),
         itemBuilder: (context, i) {
           final mode = modes[i];
           return GestureDetector(
