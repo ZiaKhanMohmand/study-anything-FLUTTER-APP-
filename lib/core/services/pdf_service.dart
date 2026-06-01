@@ -27,7 +27,6 @@ class PdfService {
 
       return (text: trimmedText, fileName: file.name);
     } catch (e) {
-      print('Error picking PDF: $e');
       return null;
     }
   }

@@ -134,7 +134,7 @@ class HomeScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF6C63FF).withOpacity(0.3),
+            color: const Color(0xFF6C63FF).withAlpha(77),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -146,12 +146,9 @@ class HomeScreen extends ConsumerWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
+              color: Colors.white.withAlpha(51),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: Colors.white.withOpacity(0.3),
-                width: 1,
-              ),
+              border: Border.all(color: Colors.white.withAlpha(77), width: 1),
             ),
             child: Center(
               child: Text(
@@ -191,7 +188,7 @@ class HomeScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
+              color: Colors.white.withAlpha(38),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Column(
@@ -224,7 +221,7 @@ class HomeScreen extends ConsumerWidget {
           border: Border.all(color: const Color(0xFFE8E8F5), width: 1),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF6C63FF).withOpacity(0.08),
+              color: const Color(0xFF6C63FF).withAlpha(20),
               blurRadius: 20,
               offset: const Offset(0, 6),
             ),

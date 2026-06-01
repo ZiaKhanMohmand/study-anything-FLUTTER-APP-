@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:study_anything/core/models/question_model.dart';
 import 'package:study_anything/core/models/quiz_result_model.dart';
-import 'package:study_anything/core/services/gemini_service.dart';
+import 'package:study_anything/core/services/groq_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 final _currentIndexProvider = StateProvider<int>((ref) => 0);
@@ -388,6 +388,9 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
   }
 
   void _submitQuiz(BuildContext context, Map<int, String> answers) async {
+    final navigator = Navigator.of(context);
+    final router = GoRouter.of(context);
+
     for (int i = 0; i < widget.questions.length; i++) {
       widget.questions[i].userAnswer = answers[i];
     }
@@ -402,9 +405,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     );
 
     try {
-      final evaluations = await GeminiService().evaluateAnswers(
-        widget.questions,
-      );
+      final evaluations = await GroqService().evaluateAnswers(widget.questions);
       for (int i = 0; i < widget.questions.length; i++) {
         widget.questions[i].aiCorrect = evaluations[i];
       }
@@ -413,7 +414,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     }
 
     if (!mounted) return;
-    Navigator.pop(context); // close loading dialog
+    navigator.pop(); // close loading dialog
 
     if (!mounted) return;
     final result = QuizResult(
@@ -433,17 +434,17 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
           onAdDismissedFullScreenContent: (ad) {
             ad.dispose();
             _interstitialAd = null;
-            if (mounted) context.go('/results', extra: {'result': result});
+            if (mounted) router.go('/results', extra: {'result': result});
           },
           onAdFailedToShowFullScreenContent: (ad, error) {
             ad.dispose();
             _interstitialAd = null;
-            if (mounted) context.go('/results', extra: {'result': result});
+            if (mounted) router.go('/results', extra: {'result': result});
           },
         );
         _interstitialAd!.show();
       } else {
-        context.go('/results', extra: {'result': result}); // fallback
+        router.go('/results', extra: {'result': result}); // fallback
       }
     }
   }

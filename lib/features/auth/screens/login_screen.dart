@@ -85,12 +85,9 @@ class LoginScreen extends ConsumerWidget {
           width: 80,
           height: 80,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.15),
+            color: Colors.white.withAlpha(38),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.3),
-              width: 1.5,
-            ),
+            border: Border.all(color: Colors.white.withAlpha(77), width: 1.5),
           ),
           child: const Icon(
             Icons.menu_book_rounded,
@@ -124,7 +121,7 @@ class LoginScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3B37C8).withOpacity(0.25),
+            color: const Color(0xFF3B37C8).withAlpha(64),
             blurRadius: 40,
             offset: const Offset(0, 16),
           ),

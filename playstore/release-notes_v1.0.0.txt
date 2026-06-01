@@ -1,0 +1,13 @@
+Release Notes — v1.0.0
+-----------------------
+
+Initial public release.
+
+Features:
+- AI-generated summaries for articles and notes
+- Multiple-choice quizzes and flashcards
+- Google Sign-In and cloud sync
+- PDF export and offline reading
+
+Known issues:
+- Some device-specific UI fixes may be needed; please report crashes.

@@ -31,7 +31,7 @@ class AdService {
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: onLoaded,
-        onAdFailedToLoad: (error) => print('Interstitial failed: $error'),
+        onAdFailedToLoad: (_) {},
       ),
     );
   }
@@ -43,7 +43,7 @@ class AdService {
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: onLoaded,
-        onAdFailedToLoad: (error) => print('Rewarded failed: $error'),
+        onAdFailedToLoad: (_) {},
       ),
     );
   }

@@ -1,0 +1,18 @@
+Play Store Upload Checklist
+--------------------------
+
+- [ ] Google Play Developer account ready
+- [ ] App package name confirmed: com.zia.study_anything
+- [ ] AAB built: build/app/outputs/bundle/release/app-release.aab
+- [ ] Privacy policy hosted and URL ready
+- [ ] High-res icon (512x512 PNG) prepared
+- [ ] At least 3 phone screenshots (1080x1920) prepared
+- [ ] Feature graphic (1024x500) prepared
+- [ ] Promo video link (optional)
+- [ ] Release notes written: playstore/release-notes_v1.0.0.txt
+- [ ] Content rating questionnaire completed
+- [ ] Pricing & distribution configured
+- [ ] Internal Test track upload completed and validated
+- [ ] Production release rollout scheduled
+
+If you want I can produce placeholder screenshots and a simple feature graphic template you can edit.

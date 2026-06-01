@@ -116,13 +116,13 @@ class UploadScreen extends ConsumerWidget {
           border: Border.all(
             color: hasFile
                 ? const Color(0xFF6C63FF)
-                : const Color(0xFF6C63FF).withOpacity(0.3),
+                : const Color(0xFF6C63FF).withAlpha(77),
             width: hasFile ? 2 : 1.5,
             style: BorderStyle.solid,
           ),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFF6C63FF).withOpacity(0.08),
+              color: const Color(0xFF6C63FF).withAlpha(20),
               blurRadius: 24,
               offset: const Offset(0, 8),
             ),
@@ -180,7 +180,7 @@ class UploadScreen extends ConsumerWidget {
           width: 70,
           height: 70,
           decoration: BoxDecoration(
-            color: const Color(0xFF6C63FF).withOpacity(0.15),
+            color: const Color(0xFF6C63FF).withAlpha(38),
             borderRadius: BorderRadius.circular(20),
           ),
           child: const Icon(
@@ -302,7 +302,7 @@ class UploadScreen extends ConsumerWidget {
             width: 16,
             height: 16,
             decoration: BoxDecoration(
-              color: const Color(0xFF6C63FF).withOpacity(0.15),
+              color: const Color(0xFF6C63FF).withAlpha(38),
               borderRadius: BorderRadius.circular(5),
             ),
             child: const Icon(Icons.check, size: 10, color: Color(0xFF6C63FF)),

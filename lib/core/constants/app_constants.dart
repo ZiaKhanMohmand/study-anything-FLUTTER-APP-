@@ -1,6 +1,5 @@
 class AppConstants {
-  // Gemini
-  static const String geminiModel = 'gemini-1.5-flash';
+  static const String groqModel = 'llama-3.3-70b-versatile';
   static const int maxTokens = 8192;
 
   // Quiz

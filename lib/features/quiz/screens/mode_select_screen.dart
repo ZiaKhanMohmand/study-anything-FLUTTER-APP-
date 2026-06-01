@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:study_anything/widgets/banner_ad_widget.dart';
 import '../../../core/models/question_model.dart';
-import '../../../core/services/gemini_service.dart';
+import '../../../core/services/groq_service.dart';
 
 class ModeSelectScreen extends ConsumerStatefulWidget {
   final String pdfText;
@@ -69,11 +69,10 @@ class _ModeSelectScreenState extends ConsumerState<ModeSelectScreen> {
   Future<void> _generateQuiz(QuestionType type) async {
     setState(() => _isLoading = true);
     try {
-      final questions = await GeminiService().generateQuestions(
+      final questions = await GroqService().generateQuestions(
         widget.pdfText,
         type,
       );
-      print('=== QUESTIONS RECEIVED: ${questions.length} ===');
 
       if (questions.isEmpty) {
         throw Exception('No questions were generated. Try a different PDF.');
@@ -86,7 +85,6 @@ class _ModeSelectScreenState extends ConsumerState<ModeSelectScreen> {
         extra: {'questions': questions, 'pdfName': widget.pdfName},
       );
     } catch (e) {
-      print('=== ERROR: $e ===');
       if (!mounted) return;
       setState(() => _isLoading = false);
       showDialog(
@@ -290,7 +288,7 @@ class _ModeSelectScreenState extends ConsumerState<ModeSelectScreen> {
                 border: Border.all(color: const Color(0xFFE8E8F5), width: 1),
                 boxShadow: [
                   BoxShadow(
-                    color: mode.color.withOpacity(0.08),
+                    color: mode.color.withAlpha(20),
                     blurRadius: 16,
                     offset: const Offset(0, 4),
                   ),

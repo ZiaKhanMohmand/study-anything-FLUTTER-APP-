@@ -66,7 +66,7 @@ class ResultsScreen extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withAlpha(51),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(
@@ -116,7 +116,7 @@ class ResultsScreen extends StatelessWidget {
         border: Border.all(color: const Color(0xFFE8E8F5), width: 1),
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.15),
+            color: color.withAlpha(38),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -128,9 +128,9 @@ class ResultsScreen extends StatelessWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withAlpha(26),
               shape: BoxShape.circle,
-              border: Border.all(color: color.withOpacity(0.3), width: 2),
+              border: Border.all(color: color.withAlpha(77), width: 2),
             ),
             child: Center(
               child: Text(
@@ -156,7 +156,7 @@ class ResultsScreen extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withAlpha(26),
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
@@ -239,10 +239,10 @@ class ResultsScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withOpacity(0.25), width: 1),
+        border: Border.all(color: color.withAlpha(64), width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withAlpha(10),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -282,7 +282,7 @@ class ResultsScreen extends StatelessWidget {
                     vertical: 3,
                   ),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.12),
+                    color: color.withAlpha(31),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(

@@ -1,21 +1,43 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
+import '../constants/app_constants.dart';
 import '../models/question_model.dart';
 import '../constants/prompts.dart';
 
-class GeminiService {
+class GroqService {
   final String _apiKey;
 
-  GeminiService() : _apiKey = dotenv.env['GROQ_API_KEY'] ?? '' {
+  GroqService() : _apiKey = dotenv.env['GROQ_API_KEY'] ?? '' {
     if (_apiKey.isEmpty) {
       throw Exception('GROQ_API_KEY not found in .env file');
     }
   }
 
-  Future<List<bool>> evaluateAnswers(List<Question> questions) async {
-    print('=== EVALUATING ANSWERS ===');
+  Future<String> _postPrompt(String prompt, double temperature) async {
+    final response = await http.post(
+      Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
+      headers: {
+        'Authorization': 'Bearer $_apiKey',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'model': AppConstants.groqModel,
+        'messages': [
+          {'role': 'user', 'content': prompt},
+        ],
+        'temperature': temperature,
+      }),
+    );
 
+    if (response.statusCode != 200) {
+      throw Exception('Groq API error: ${response.body}');
+    }
+
+    return response.body;
+  }
+
+  Future<List<bool>> evaluateAnswers(List<Question> questions) async {
     final questionsJson = questions
         .map(
           (q) => {
@@ -42,26 +64,8 @@ Questions:
 ${jsonEncode(questionsJson)}
 ''';
 
-    final response = await http.post(
-      Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
-      headers: {
-        'Authorization': 'Bearer $_apiKey',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'model': 'llama-3.3-70b-versatile',
-        'messages': [
-          {'role': 'user', 'content': prompt},
-        ],
-        'temperature': 0.1,
-      }),
-    );
-
-    if (response.statusCode != 200) {
-      throw Exception('Groq evaluation error: ${response.body}');
-    }
-
-    final data = jsonDecode(response.body);
+    final responseBody = await _postPrompt(prompt, 0.1);
+    final data = jsonDecode(responseBody);
     final rawText = data['choices'][0]['message']['content'] as String;
 
     String cleaned = rawText
@@ -82,35 +86,11 @@ ${jsonEncode(questionsJson)}
     String pdfText,
     QuestionType type,
   ) async {
-    print('=== GROQ CALLED ===');
-
     final prompt = Prompts.generateQuiz(pdfText, type);
 
-    final response = await http.post(
-      Uri.parse('https://api.groq.com/openai/v1/chat/completions'),
-      headers: {
-        'Authorization': 'Bearer $_apiKey',
-        'Content-Type': 'application/json',
-      },
-      body: jsonEncode({
-        'model': 'llama-3.3-70b-versatile',
-        'messages': [
-          {'role': 'user', 'content': prompt},
-        ],
-        'temperature': 0.7,
-      }),
-    );
-
-    print('=== GROQ STATUS: ${response.statusCode} ===');
-
-    if (response.statusCode != 200) {
-      throw Exception('Groq API error: ${response.body}');
-    }
-
-    final data = jsonDecode(response.body);
+    final responseBody = await _postPrompt(prompt, 0.7);
+    final data = jsonDecode(responseBody);
     final rawText = data['choices'][0]['message']['content'] as String;
-
-    print('=== RESPONSE RECEIVED ===');
 
     String cleaned = rawText.trim();
     cleaned = cleaned
