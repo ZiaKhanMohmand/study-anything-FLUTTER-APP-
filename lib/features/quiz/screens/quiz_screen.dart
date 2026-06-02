@@ -14,8 +14,14 @@ final _answersProvider = StateProvider<Map<int, String>>((ref) => {});
 class QuizScreen extends ConsumerStatefulWidget {
   final List<Question> questions;
   final String pdfName;
+  final String pdfText;
 
-  const QuizScreen({super.key, required this.questions, required this.pdfName});
+  const QuizScreen({
+    super.key,
+    required this.questions,
+    required this.pdfName,
+    required this.pdfText,
+  });
 
   @override
   ConsumerState<QuizScreen> createState() => _QuizScreenState();
@@ -71,7 +77,6 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     final question = widget.questions[currentIndex];
     final progress = (currentIndex + 1) / widget.questions.length;
 
-    // Update controller when question changes
     if (_lastIndex != currentIndex) {
       _lastIndex = currentIndex;
       _textController.text = answers[currentIndex] ?? '';
@@ -263,7 +268,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
           ],
         ),
         child: TextField(
-          controller: _textController, // ✅ stable controller
+          controller: _textController,
           textDirection: TextDirection.ltr,
           onChanged: (value) {
             final updated = Map<int, String>.from(answers);
@@ -395,7 +400,6 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
       widget.questions[i].userAnswer = answers[i];
     }
 
-    // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -414,12 +418,13 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     }
 
     if (!mounted) return;
-    navigator.pop(); // close loading dialog
+    navigator.pop();
 
     if (!mounted) return;
     final result = QuizResult(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       pdfName: widget.pdfName,
+      pdfText: widget.pdfText,
       questionType: widget.questions.first.type,
       questions: widget.questions,
       takenAt: DateTime.now(),
@@ -444,7 +449,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
         );
         _interstitialAd!.show();
       } else {
-        router.go('/results', extra: {'result': result}); // fallback
+        router.go('/results', extra: {'result': result});
       }
     }
   }

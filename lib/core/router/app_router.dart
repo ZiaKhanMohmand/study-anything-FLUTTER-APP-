@@ -14,10 +14,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
     initialLocation: '/login',
     routes: [
-      GoRoute(
-        path: '/onboarding',
-        builder: (_, _) => const OnboardingScreen(),
-      ),
+      GoRoute(path: '/onboarding', builder: (_, _) => const OnboardingScreen()),
       GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
       GoRoute(path: '/home', builder: (context, state) => const HomeScreen()),
       GoRoute(
@@ -29,8 +26,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final extra = state.extra as Map<String, dynamic>;
           return ModeSelectScreen(
-            pdfText: extra['pdfText'],
-            pdfName: extra['pdfName'],
+            pdfText: extra['pdfText'] as String,
+            pdfName: extra['pdfName'] as String,
           );
         },
       ),
@@ -41,6 +38,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return QuizScreen(
             questions: List<Question>.from(extra['questions']),
             pdfName: extra['pdfName'] as String,
+            pdfText: extra['pdfText'] as String, // ADD THIS
           );
         },
       ),

@@ -1,17 +1,16 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdService {
-  static const String bannerAdUnitId = 'ca-app-pub-4604628624077755/9215439214';
-  static const String interstitialAdUnitId =
-      'ca-app-pub-4604628624077755/2969064835';
-  static const String rewardedAdUnitId =
-      'ca-app-pub-4604628624077755/4613318998';
+  static String get bannerAdUnitId => dotenv.env['ADMOB_BANNER_ID'] ?? '';
+  static String get interstitialAdUnitId =>
+      dotenv.env['ADMOB_INTERSTITIAL_ID'] ?? '';
+  static String get rewardedAdUnitId => dotenv.env['ADMOB_REWARDED_ID'] ?? '';
 
   static void initialize() {
     MobileAds.instance.initialize();
   }
 
-  // Banner
   static BannerAd createBanner({required BannerAdListener listener}) {
     return BannerAd(
       adUnitId: bannerAdUnitId,
@@ -21,7 +20,6 @@ class AdService {
     )..load();
   }
 
-  // Interstitial
   static void loadInterstitial({
     required void Function(InterstitialAd ad) onLoaded,
   }) {
@@ -35,7 +33,6 @@ class AdService {
     );
   }
 
-  // Rewarded
   static void loadRewarded({required void Function(RewardedAd ad) onLoaded}) {
     RewardedAd.load(
       adUnitId: rewardedAdUnitId,

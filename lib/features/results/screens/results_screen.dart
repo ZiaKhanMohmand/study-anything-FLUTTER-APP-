@@ -3,16 +3,106 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/models/question_model.dart';
 import '../../../core/models/quiz_result_model.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../../../core/services/ad_service.dart';
 
-class ResultsScreen extends StatelessWidget {
+class ResultsScreen extends StatefulWidget {
   final QuizResult result;
 
   const ResultsScreen({super.key, required this.result});
 
+  @override
+  State<ResultsScreen> createState() => _ResultsScreenState();
+}
+
+class _ResultsScreenState extends State<ResultsScreen> {
+  RewardedAd? _rewardedAd;
+  RewardedAd? _uploadRewardedAd;
+
   Color get _gradeColor {
-    if (result.scorePercent >= 80) return const Color(0xFF4CAF50);
-    if (result.scorePercent >= 60) return const Color(0xFFFF9800);
+    if (widget.result.scorePercent >= 80) return const Color(0xFF4CAF50);
+    if (widget.result.scorePercent >= 60) return const Color(0xFFFF9800);
     return const Color(0xFFE53935);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRewardedAd();
+    _loadUploadRewardedAd();
+  }
+
+  @override
+  void dispose() {
+    _rewardedAd?.dispose();
+    _uploadRewardedAd?.dispose();
+    super.dispose();
+  }
+
+  void _loadRewardedAd() {
+    AdService.loadRewarded(onLoaded: (ad) => setState(() => _rewardedAd = ad));
+  }
+
+  void _loadUploadRewardedAd() {
+    AdService.loadRewarded(
+      onLoaded: (ad) => setState(() => _uploadRewardedAd = ad),
+    );
+  }
+
+  void _onTryAnotherPdfTapped() {
+    if (_uploadRewardedAd == null) {
+      context.go('/upload');
+      return;
+    }
+    _uploadRewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        _uploadRewardedAd = null;
+        context.go('/upload');
+        _loadUploadRewardedAd();
+      },
+      onAdFailedToShowFullScreenContent: (ad, _) {
+        ad.dispose();
+        _uploadRewardedAd = null;
+        context.go('/upload');
+      },
+    );
+    _uploadRewardedAd!.show(onUserEarnedReward: (_, __) {});
+  }
+
+  void _onRetakeTapped() {
+    if (_rewardedAd == null) {
+      _retakeQuiz();
+      return;
+    }
+    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        _rewardedAd = null;
+        _retakeQuiz();
+        _loadRewardedAd();
+      },
+      onAdFailedToShowFullScreenContent: (ad, error) {
+        ad.dispose();
+        _rewardedAd = null;
+        _retakeQuiz();
+      },
+    );
+    _rewardedAd!.show(onUserEarnedReward: (_, __) {});
+  }
+
+  void _retakeQuiz() {
+    for (final q in widget.result.questions) {
+      q.userAnswer = null;
+      q.aiCorrect = null;
+    }
+    context.push(
+      '/mode-select',
+      extra: {
+        'pdfText': widget.result.pdfText,
+        'pdfName': widget.result.pdfName,
+      },
+    );
   }
 
   @override
@@ -30,7 +120,7 @@ class ResultsScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 _sectionTitle('Question Review'),
                 const SizedBox(height: 12),
-                ...result.questions.asMap().entries.map(
+                ...widget.result.questions.asMap().entries.map(
                   (e) => _questionCard(e.key, e.value),
                 ),
                 const SizedBox(height: 24),
@@ -106,7 +196,7 @@ class ResultsScreen extends StatelessWidget {
 
   Widget _scoreCard() {
     final color = _gradeColor;
-    final isPass = result.scorePercent >= 60;
+    final isPass = widget.result.scorePercent >= 60;
 
     return Container(
       padding: const EdgeInsets.all(24),
@@ -134,7 +224,7 @@ class ResultsScreen extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                result.grade,
+                widget.result.grade,
                 style: GoogleFonts.poppins(
                   fontSize: 30,
                   fontWeight: FontWeight.bold,
@@ -145,7 +235,7 @@ class ResultsScreen extends StatelessWidget {
           ),
           const SizedBox(height: 14),
           Text(
-            '${result.scorePercent.toStringAsFixed(0)}%',
+            '${widget.result.scorePercent.toStringAsFixed(0)}%',
             style: GoogleFonts.poppins(
               fontSize: 28,
               fontWeight: FontWeight.bold,
@@ -180,19 +270,20 @@ class ResultsScreen extends StatelessWidget {
               children: [
                 _stat(
                   'Correct',
-                  result.correctCount.toString(),
+                  widget.result.correctCount.toString(),
                   const Color(0xFF4CAF50),
                 ),
                 _statDivider(),
                 _stat(
                   'Wrong',
-                  (result.totalQuestions - result.correctCount).toString(),
+                  (widget.result.totalQuestions - widget.result.correctCount)
+                      .toString(),
                   const Color(0xFFE53935),
                 ),
                 _statDivider(),
                 _stat(
                   'Total',
-                  result.totalQuestions.toString(),
+                  widget.result.totalQuestions.toString(),
                   const Color(0xFF6C63FF),
                 ),
               ],
@@ -203,9 +294,8 @@ class ResultsScreen extends StatelessWidget {
     );
   }
 
-  Widget _statDivider() {
-    return Container(width: 1, height: 36, color: const Color(0xFFE8E8F5));
-  }
+  Widget _statDivider() =>
+      Container(width: 1, height: 36, color: const Color(0xFFE8E8F5));
 
   Widget _stat(String label, String value, Color color) {
     return Column(
@@ -496,14 +586,16 @@ class ResultsScreen extends StatelessWidget {
           width: double.infinity,
           height: 52,
           child: ElevatedButton.icon(
-            onPressed: () => context.go('/upload'),
+            onPressed: _onTryAnotherPdfTapped,
             icon: const Icon(
               Icons.upload_file_rounded,
               color: Colors.white,
               size: 18,
             ),
             label: Text(
-              'Try Another PDF',
+              _uploadRewardedAd != null
+                  ? '🎬 Watch Ad & Try Another PDF'
+                  : 'Try Another PDF',
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -511,6 +603,33 @@ class ResultsScreen extends StatelessWidget {
             ),
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF6C63FF),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          width: double.infinity,
+          height: 52,
+          child: ElevatedButton.icon(
+            onPressed: _onRetakeTapped,
+            icon: const Icon(
+              Icons.replay_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
+            label: Text(
+              _rewardedAd != null ? '🎬 Watch Ad & Retake' : 'Retake Quiz',
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4CAF50),
               elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),

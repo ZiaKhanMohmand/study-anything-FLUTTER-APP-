@@ -3,6 +3,7 @@ import 'question_model.dart';
 class QuizResult {
   final String id;
   final String pdfName;
+  final String pdfText;
   final QuestionType questionType;
   final List<Question> questions;
   final DateTime takenAt;
@@ -10,6 +11,7 @@ class QuizResult {
   QuizResult({
     required this.id,
     required this.pdfName,
+    required this.pdfText,
     required this.questionType,
     required this.questions,
     required this.takenAt,

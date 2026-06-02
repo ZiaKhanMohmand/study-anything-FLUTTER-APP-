@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:study_anything/core/services/ad_service.dart';
+import 'package:study_anything/core/services/quota_service.dart';
 import 'package:study_anything/widgets/banner_ad_widget.dart';
 import '../../../core/models/question_model.dart';
 import '../../../core/services/ai_service.dart';
@@ -22,6 +25,8 @@ class ModeSelectScreen extends ConsumerStatefulWidget {
 
 class _ModeSelectScreenState extends ConsumerState<ModeSelectScreen> {
   bool _isLoading = false;
+  RewardedAd? _rewardedAd;
+  QuestionType? _pendingType;
 
   final List<_QuizMode> modes = [
     const _QuizMode(
@@ -66,6 +71,132 @@ class _ModeSelectScreenState extends ConsumerState<ModeSelectScreen> {
     ),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _loadRewardedAd();
+  }
+
+  @override
+  void dispose() {
+    _rewardedAd?.dispose();
+    super.dispose();
+  }
+
+  void _loadRewardedAd() {
+    AdService.loadRewarded(
+      onLoaded: (ad) {
+        if (mounted) setState(() => _rewardedAd = ad);
+      },
+    );
+  }
+
+  Future<void> _onModeTapped(QuestionType type) async {
+    final allowed = await QuotaService.canGenerate();
+    if (allowed) {
+      await _generateQuiz(type);
+    } else {
+      _pendingType = type;
+      _showAdWall();
+    }
+  }
+
+  void _showAdWall() {
+    if (_rewardedAd == null) {
+      // Ad not ready yet — show dialog and wait
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            'Daily Limit Reached',
+            style: GoogleFonts.poppins(fontWeight: FontWeight.bold),
+          ),
+          content: Text(
+            'You\'ve used your free quiz for today. Watch a short ad to generate more!',
+            style: GoogleFonts.poppins(fontSize: 13, color: Colors.grey[600]),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(color: Colors.grey[600]),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF6C63FF),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                elevation: 0,
+              ),
+              onPressed: () {
+                Navigator.pop(ctx);
+                // Retry after small delay for ad to load
+                Future.delayed(const Duration(seconds: 2), () {
+                  if (_rewardedAd != null && _pendingType != null) {
+                    _showRewardedAd();
+                  } else {
+                    _showAdNotReadySnack();
+                  }
+                });
+              },
+              child: Text(
+                'Watch Ad',
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+    _showRewardedAd();
+  }
+
+  void _showRewardedAd() {
+    if (_rewardedAd == null || _pendingType == null) {
+      _showAdNotReadySnack();
+      return;
+    }
+    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (ad) {
+        ad.dispose();
+        _rewardedAd = null;
+        _loadRewardedAd();
+        if (_pendingType != null) _generateQuiz(_pendingType!);
+      },
+      onAdFailedToShowFullScreenContent: (ad, _) {
+        ad.dispose();
+        _rewardedAd = null;
+        _showAdNotReadySnack();
+      },
+    );
+    _rewardedAd!.show(onUserEarnedReward: (_, __) {});
+  }
+
+  void _showAdNotReadySnack() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          'Ad not ready yet, try again in a moment.',
+          style: GoogleFonts.poppins(color: Colors.white),
+        ),
+        backgroundColor: const Color(0xFF6C63FF),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
   Future<void> _generateQuiz(QuestionType type) async {
     setState(() => _isLoading = true);
     try {
@@ -79,11 +210,17 @@ class _ModeSelectScreenState extends ConsumerState<ModeSelectScreen> {
         throw Exception('No questions were generated. Try a different PDF.');
       }
 
+      await QuotaService.incrementCount(); // increment AFTER success
+
       if (!mounted) return;
       setState(() => _isLoading = false);
       context.push(
         '/quiz',
-        extra: {'questions': questions, 'pdfName': widget.pdfName},
+        extra: {
+          'questions': questions,
+          'pdfName': widget.pdfName,
+          'pdfText': widget.pdfText,
+        },
       );
     } catch (e) {
       if (!mounted) return;
@@ -276,11 +413,11 @@ class _ModeSelectScreenState extends ConsumerState<ModeSelectScreen> {
     return Expanded(
       child: ListView.separated(
         itemCount: modes.length,
-        separatorBuilder: (_, _) => const SizedBox(height: 12),
+        separatorBuilder: (_, __) => const SizedBox(height: 12),
         itemBuilder: (context, i) {
           final mode = modes[i];
           return GestureDetector(
-            onTap: () => _generateQuiz(mode.type),
+            onTap: () => _onModeTapped(mode.type), // CHANGED from _generateQuiz
             child: Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(

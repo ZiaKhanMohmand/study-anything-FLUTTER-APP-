@@ -15,7 +15,7 @@ void main() async {
   GoogleFonts.config.allowRuntimeFetching = true;
   await dotenv.load(fileName: '.env');
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await MobileAds.instance.initialize();
+  await MobileAds.instance.initialize(); // no test device IDs in production
   try {
     await Hive.initFlutter();
   } catch (_) {
