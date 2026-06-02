@@ -1,7 +1,6 @@
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdService {
-  // TEST IDs — replace with real ones before release
   static const String bannerAdUnitId = 'ca-app-pub-4604628624077755/9215439214';
   static const String interstitialAdUnitId =
       'ca-app-pub-4604628624077755/2969064835';

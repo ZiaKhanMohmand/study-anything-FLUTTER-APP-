@@ -5,7 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:study_anything/core/models/question_model.dart';
 import 'package:study_anything/core/models/quiz_result_model.dart';
-import 'package:study_anything/core/services/groq_service.dart';
+import 'package:study_anything/core/services/ai_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 final _currentIndexProvider = StateProvider<int>((ref) => 0);
@@ -405,7 +405,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     );
 
     try {
-      final evaluations = await GroqService().evaluateAnswers(widget.questions);
+      final evaluations = await AIService().evaluateAnswers(widget.questions);
       for (int i = 0; i < widget.questions.length; i++) {
         widget.questions[i].aiCorrect = evaluations[i];
       }

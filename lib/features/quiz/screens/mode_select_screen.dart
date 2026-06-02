@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:study_anything/widgets/banner_ad_widget.dart';
 import '../../../core/models/question_model.dart';
-import '../../../core/services/groq_service.dart';
+import '../../../core/services/ai_service.dart';
 
 class ModeSelectScreen extends ConsumerStatefulWidget {
   final String pdfText;
@@ -69,7 +69,8 @@ class _ModeSelectScreenState extends ConsumerState<ModeSelectScreen> {
   Future<void> _generateQuiz(QuestionType type) async {
     setState(() => _isLoading = true);
     try {
-      final questions = await GroqService().generateQuestions(
+      debugPrint('[ModeSelect] Selected quiz mode: ${type.name}');
+      final questions = await AIService().generateQuestions(
         widget.pdfText,
         type,
       );
