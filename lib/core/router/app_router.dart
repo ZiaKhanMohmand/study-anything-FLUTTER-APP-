@@ -9,6 +9,7 @@ import '../../features/upload/screens/upload_screen.dart';
 import '../../features/quiz/screens/mode_select_screen.dart';
 import '../../features/quiz/screens/quiz_screen.dart';
 import '../../features/results/screens/results_screen.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -28,6 +29,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           return ModeSelectScreen(
             pdfText: extra['pdfText'] as String,
             pdfName: extra['pdfName'] as String,
+            skipQuota: extra['skipQuota'] as bool? ?? false,
           );
         },
       ),
@@ -53,9 +55,26 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) {
       final box = Hive.box('settings');
       final done = box.get('onboarding_done', defaultValue: false) as bool;
+
+      // Onboarding not done → force onboarding
       if (!done && state.matchedLocation != '/onboarding') {
         return '/onboarding';
       }
+
+      // Not logged in → force login
+      final user = FirebaseAuth.instance.currentUser;
+      final onAuthPage =
+          state.matchedLocation == '/login' ||
+          state.matchedLocation == '/onboarding';
+      if (user == null && !onAuthPage) {
+        return '/login';
+      }
+
+      // Logged in but on login page → send home
+      if (user != null && state.matchedLocation == '/login') {
+        return '/home';
+      }
+
       return null;
     },
   );

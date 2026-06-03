@@ -12,11 +12,13 @@ import '../../../core/services/ai_service.dart';
 class ModeSelectScreen extends ConsumerStatefulWidget {
   final String pdfText;
   final String pdfName;
+  final bool skipQuota;
 
   const ModeSelectScreen({
     super.key,
     required this.pdfText,
     required this.pdfName,
+    this.skipQuota = false,
   });
 
   @override
@@ -92,6 +94,11 @@ class _ModeSelectScreenState extends ConsumerState<ModeSelectScreen> {
   }
 
   Future<void> _onModeTapped(QuestionType type) async {
+    if (widget.skipQuota) {
+      // ← bypass quota
+      await _generateQuiz(type);
+      return;
+    }
     final allowed = await QuotaService.canGenerate();
     if (allowed) {
       await _generateQuiz(type);

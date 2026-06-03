@@ -30,11 +30,15 @@ class AuthNotifier extends AsyncNotifier<User?> {
       final result = await _auth.signInWithCredential(credential);
       state = AsyncData(result.user);
     } catch (e) {
+      if (e.toString().contains('canceled') ||
+          e.toString().contains('cancelled')) {
+        state = const AsyncData(null);
+        return;
+      }
       state = AsyncError(e, StackTrace.current);
     }
   }
 
-  // ✅ SIGN IN — check if email is verified
   Future<void> signInWithEmail(String email, String password) async {
     state = const AsyncLoading();
     try {
@@ -54,7 +58,6 @@ class AuthNotifier extends AsyncNotifier<User?> {
     }
   }
 
-  // ✅ SIGN UP — create account and send verification email
   Future<void> signUpWithEmail(String email, String password) async {
     state = const AsyncLoading();
     try {

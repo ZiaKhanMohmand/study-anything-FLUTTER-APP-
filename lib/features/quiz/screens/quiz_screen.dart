@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:study_anything/core/models/question_model.dart';
 import 'package:study_anything/core/models/quiz_result_model.dart';
+import 'package:study_anything/core/services/ad_service.dart';
 import 'package:study_anything/core/services/ai_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
@@ -31,6 +32,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
   late TextEditingController _textController;
   int _lastIndex = 0;
   InterstitialAd? _interstitialAd;
+  static int _quizCount = 0;
 
   @override
   void initState() {
@@ -41,7 +43,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
   void _loadInterstitialAd() {
     InterstitialAd.load(
-      adUnitId: 'ca-app-pub-3940256099942544/1033173712', // TEST ID
+      adUnitId: AdService.interstitialAdUnitId,
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (ad) => _interstitialAd = ad,
@@ -434,7 +436,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     ref.read(_answersProvider.notifier).state = {};
 
     if (mounted) {
-      if (_interstitialAd != null) {
+      _quizCount++;
+      if (_interstitialAd != null && _quizCount % 2 == 0) {
         _interstitialAd!.fullScreenContentCallback = FullScreenContentCallback(
           onAdDismissedFullScreenContent: (ad) {
             ad.dispose();

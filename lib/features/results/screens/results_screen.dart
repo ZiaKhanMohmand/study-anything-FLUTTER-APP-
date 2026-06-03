@@ -17,7 +17,6 @@ class ResultsScreen extends StatefulWidget {
 
 class _ResultsScreenState extends State<ResultsScreen> {
   RewardedAd? _rewardedAd;
-  RewardedAd? _uploadRewardedAd;
 
   Color get _gradeColor {
     if (widget.result.scorePercent >= 80) return const Color(0xFF4CAF50);
@@ -29,13 +28,11 @@ class _ResultsScreenState extends State<ResultsScreen> {
   void initState() {
     super.initState();
     _loadRewardedAd();
-    _loadUploadRewardedAd();
   }
 
   @override
   void dispose() {
     _rewardedAd?.dispose();
-    _uploadRewardedAd?.dispose();
     super.dispose();
   }
 
@@ -43,31 +40,8 @@ class _ResultsScreenState extends State<ResultsScreen> {
     AdService.loadRewarded(onLoaded: (ad) => setState(() => _rewardedAd = ad));
   }
 
-  void _loadUploadRewardedAd() {
-    AdService.loadRewarded(
-      onLoaded: (ad) => setState(() => _uploadRewardedAd = ad),
-    );
-  }
-
   void _onTryAnotherPdfTapped() {
-    if (_uploadRewardedAd == null) {
-      context.go('/upload');
-      return;
-    }
-    _uploadRewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
-      onAdDismissedFullScreenContent: (ad) {
-        ad.dispose();
-        _uploadRewardedAd = null;
-        context.go('/upload');
-        _loadUploadRewardedAd();
-      },
-      onAdFailedToShowFullScreenContent: (ad, _) {
-        ad.dispose();
-        _uploadRewardedAd = null;
-        context.go('/upload');
-      },
-    );
-    _uploadRewardedAd!.show(onUserEarnedReward: (_, __) {});
+    context.go('/upload');
   }
 
   void _onRetakeTapped() {
@@ -101,6 +75,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
       extra: {
         'pdfText': widget.result.pdfText,
         'pdfName': widget.result.pdfName,
+        'skipQuota': true,
       },
     );
   }
@@ -593,9 +568,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
               size: 18,
             ),
             label: Text(
-              _uploadRewardedAd != null
-                  ? '🎬 Watch Ad & Try Another PDF'
-                  : 'Try Another PDF',
+              'Try Another PDF',
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,

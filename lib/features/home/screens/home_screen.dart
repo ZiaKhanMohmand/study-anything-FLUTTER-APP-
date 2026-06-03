@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -6,11 +7,58 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:study_anything/widgets/banner_ad_widget.dart';
 import '../../auth/providers/auth_provider.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  int _quizzesLeft = 3;
+  Color get _dotColor {
+    if (_quizzesLeft >= 2) return const Color(0xFF4ADE80); // green
+    if (_quizzesLeft == 1) return const Color(0xFFFBBF24); // orange
+    return const Color(0xFFEF4444); // red
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadQuota();
+  }
+
+  Future<void> _loadQuota() async {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid == null) return;
+
+    final today = DateTime.now();
+    final todayStr =
+        '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+
+    final snap = await FirebaseFirestore.instance
+        .collection('user_quotas')
+        .doc(uid)
+        .get();
+
+    if (!mounted) return;
+
+    if (!snap.exists) {
+      setState(() => _quizzesLeft = 3);
+      return;
+    }
+
+    final data = snap.data() as Map<String, dynamic>;
+    final lastDate = data['date'] as String?;
+    final count = data['count'] as int? ?? 0;
+
+    setState(() {
+      _quizzesLeft = lastDate == todayStr ? (3 - count).clamp(0, 3) : 3;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
@@ -24,6 +72,8 @@ class HomeScreen extends ConsumerWidget {
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
                   _greetingCard(user),
+                  const SizedBox(height: 12),
+                  _quotaInfoBanner(),
                   const SizedBox(height: 28),
                   _sectionTitle('Start a new quiz'),
                   const SizedBox(height: 12),
@@ -185,20 +235,40 @@ class HomeScreen extends ConsumerWidget {
               ],
             ),
           ),
+          // ← CHANGED: replaced 🔥 with quota badge
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(38),
-              borderRadius: BorderRadius.circular(10),
+              color: Colors.white.withAlpha(40),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withAlpha(60), width: 1),
             ),
             child: Column(
               children: [
-                Text('🔥', style: const TextStyle(fontSize: 16)),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: List.generate(
+                    3,
+                    (i) => Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 2),
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: i < _quizzesLeft
+                            ? _dotColor
+                            : Colors.white.withAlpha(60),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
                 Text(
-                  'Study',
+                  '$_quizzesLeft left',
                   style: GoogleFonts.poppins(
-                    fontSize: 9,
-                    color: Colors.white70,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    color: _dotColor,
                   ),
                 ),
               ],
@@ -209,9 +279,75 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
+  Widget _quotaInfoBanner() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEEEDFE),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFF6C63FF).withAlpha(40)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.info_outline_rounded,
+            color: Color(0xFF6C63FF),
+            size: 18,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                style: GoogleFonts.poppins(
+                  fontSize: 11,
+                  color: const Color(0xFF534AB7),
+                ),
+                children: [
+                  const TextSpan(
+                    text: '3 free quizzes per day. Need more? Press ',
+                  ),
+                  TextSpan(
+                    text: 'Get Started',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF6C63FF),
+                    ),
+                  ),
+                  const TextSpan(text: ', '),
+                  TextSpan(
+                    text: 'select a quiz mode',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF6C63FF),
+                    ),
+                  ),
+                  const TextSpan(text: ', and '),
+                  TextSpan(
+                    text: 'watch a short ad',
+                    style: GoogleFonts.poppins(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF6C63FF),
+                    ),
+                  ),
+                  const TextSpan(text: ' to unlock more.'),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _uploadCard(BuildContext context) {
     return GestureDetector(
-      onTap: () => context.push('/upload'),
+      onTap: () async {
+        await context.push('/upload');
+        _loadQuota(); // refresh quota on return
+      },
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(24),
@@ -242,6 +378,7 @@ class HomeScreen extends ConsumerWidget {
                 color: Color(0xFF6C63FF),
               ),
             ),
+
             const SizedBox(width: 16),
             Expanded(
               child: Column(

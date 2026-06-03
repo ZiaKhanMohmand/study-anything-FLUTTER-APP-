@@ -21,7 +21,7 @@ class QuotaService {
     final count = data['count'] as int? ?? 0;
 
     if (lastDate != today) return true; // new day, reset
-    return count < 1; // 1 free per day
+    return count < 3; // 3 free per day
   }
 
   /// Call after successful generation.
